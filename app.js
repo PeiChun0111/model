@@ -10,6 +10,18 @@ const canvas = document.getElementById("captureCanvas");
 let model;
 let webcamStream;
 
+function setControlsEnabled(enabled) {
+  captureButton.disabled = !enabled;
+  imageInput.disabled = !enabled;
+}
+
+function showStatus(message, hint) {
+  statusText.textContent = message;
+  if (hint) {
+    predictionList.innerHTML = `<p class="hint-text">${hint}</p>`;
+  }
+}
+
 async function initCamera() {
   if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
     videoOverlay.textContent = "您的裝置不支援相機，請改用上傳照片。";
@@ -30,14 +42,28 @@ async function initCamera() {
 }
 
 async function loadModel() {
+  setControlsEnabled(false);
+
+  if (window.location.protocol === "file:") {
+    console.error("Model load error: file:// protocol not supported for model loading.");
+    showStatus(
+      "模型載入失敗",
+      "請使用本機伺服器開啟此頁面，不要直接以檔案方式打開。"
+    );
+    return;
+  }
+
   try {
-    statusText.textContent = "載入模型中...";
+    showStatus("載入模型中...", "請稍候。這可能需要幾秒鐘。");
     model = await tmImage.load(modelURL, metadataURL);
-    statusText.textContent = "模型已準備好";
+    showStatus("模型已準備好", "請按「拍照辨識」或上傳照片。");
+    setControlsEnabled(true);
   } catch (error) {
     console.error("Model load error:", error);
-    statusText.textContent = "模型載入失敗，請檢查 models 資料夾。";
-    predictionList.innerHTML = `<p class="hint-text">無法載入模型，請確認本機伺服器已啟動並且模型檔案存在。</p>`;
+    showStatus(
+      "模型載入失敗",
+      "請檢查 models 資料夾與本機伺服器是否啟動。"
+    );
   }
 }
 
