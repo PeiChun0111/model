@@ -32,20 +32,20 @@ function updateHint(message) {
 
 async function initCamera() {
   if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-    videoOverlay.textContent = "您的裝置不支援相機，請改用上傳照片。";
+    elements.videoOverlay.textContent = "您的裝置不支援相機，請改用上傳照片。";
     return;
   }
 
   try {
-    webcamStream = await navigator.mediaDevices.getUserMedia({
+    state.webcamStream = await navigator.mediaDevices.getUserMedia({
       video: { facingMode: "environment" },
       audio: false,
     });
-    webcamElement.srcObject = webcamStream;
-    videoOverlay.style.display = "none";
+    elements.webcam.srcObject = state.webcamStream;
+    elements.videoOverlay.style.display = "none";
   } catch (error) {
     console.error("Camera init error:", error);
-    videoOverlay.textContent = "請允許相機存取或改用上傳照片。";
+    elements.videoOverlay.textContent = "請允許相機存取或改用上傳照片。";
   }
 }
 
