@@ -1,26 +1,33 @@
-const baseURL = new URL(".", window.location.href).href;
-const modelURL = new URL("models/model.json", baseURL).href;
-const metadataURL = new URL("models/metadata.json", baseURL).href;
-const webcamElement = document.getElementById("webcam");
-const captureButton = document.getElementById("captureButton");
-const imageInput = document.getElementById("imageInput");
-const predictionList = document.getElementById("predictionList");
-const statusText = document.getElementById("statusText");
-const videoOverlay = document.getElementById("video-overlay");
-const canvas = document.getElementById("captureCanvas");
-let model;
-let webcamStream;
+const BASE_URL = new URL(".", window.location.href).href;
+const MODEL_URL = new URL("models/model.json", BASE_URL).href;
+const METADATA_URL = new URL("models/metadata.json", BASE_URL).href;
+
+const elements = {
+  webcam: document.getElementById("webcam"),
+  captureButton: document.getElementById("captureButton"),
+  imageInput: document.getElementById("imageInput"),
+  predictionList: document.getElementById("predictionList"),
+  statusText: document.getElementById("statusText"),
+  videoOverlay: document.getElementById("video-overlay"),
+  canvas: document.getElementById("captureCanvas"),
+};
+
+const state = {
+  model: null,
+  webcamStream: null,
+};
 
 function setControlsEnabled(enabled) {
-  captureButton.disabled = !enabled;
-  imageInput.disabled = !enabled;
+  elements.captureButton.disabled = !enabled;
+  elements.imageInput.disabled = !enabled;
 }
 
-function showStatus(message, hint) {
-  statusText.textContent = message;
-  if (hint) {
-    predictionList.innerHTML = `<p class="hint-text">${hint}</p>`;
-  }
+function updateStatus(message) {
+  elements.statusText.textContent = message;
+}
+
+function updateHint(message) {
+  elements.predictionList.innerHTML = `<p class="hint-text">${message}</p>`;
 }
 
 async function initCamera() {
@@ -47,36 +54,34 @@ async function loadModel() {
 
   if (window.location.protocol === "file:") {
     console.error("Model load error: file:// protocol not supported for model loading.");
-    showStatus(
-      "模型載入失敗",
-      "請使用本機伺服器開啟此頁面，不要直接以檔案方式打開。"
-    );
+    updateStatus("模型載入失敗");
+    updateHint("請使用靜態網站主機或部署至 GitHub Pages，再重新整理頁面。\n不要直接以 file:// 開啟。 ");
     return;
   }
 
   try {
-    showStatus("載入模型中...", "請稍候。這可能需要幾秒鐘。");
-    model = await tmImage.load(modelURL, metadataURL);
-    showStatus("模型已準備好", "請按「拍照辨識」或上傳照片。");
+    updateStatus("載入模型中...");
+    state.model = await tmImage.load(MODEL_URL, METADATA_URL);
+    updateStatus("模型已準備好");
+    updateHint("請按「拍照辨識」或上傳照片。" );
     setControlsEnabled(true);
   } catch (error) {
     console.error("Model load error:", error);
-    showStatus(
-      "模型載入失敗",
-      `無法載入模型：${error.message}。請開啟瀏覽器開發者工具查看詳細錯誤。`
+    updateStatus("模型載入失敗");
+    updateHint(
+      `載入模型失敗，請確認模型檔案可存取，或部署至靜態網站主機再重新整理。`
     );
-    predictionList.innerHTML = `<p class="hint-text">載入模型失敗，請確認模型檔案可存取或檢查瀏覽器 Console。</p>`;
   }
 }
 
 function renderPredictions(predictions) {
   if (!predictions || predictions.length === 0) {
-    predictionList.innerHTML = `<p class="hint-text">目前沒有辨識結果。</p>`;
+    elements.predictionList.innerHTML = `<p class="hint-text">目前沒有辨識結果。</p>`;
     return;
   }
 
   const sorted = [...predictions].sort((a, b) => b.probability - a.probability);
-  predictionList.innerHTML = sorted
+  elements.predictionList.innerHTML = sorted
     .map(
       (item) =>
         `<div class="prediction-item"><strong>${item.className}</strong><span class="probability">${(
@@ -87,60 +92,61 @@ function renderPredictions(predictions) {
 }
 
 async function classifyImage(source) {
-  if (!model) return;
-  statusText.textContent = "辨識中...";
+  if (!state.model) return;
+  updateStatus("辨識中...");
 
   try {
-    const predictions = await model.predict(source);
+    const predictions = await state.model.predict(source);
     renderPredictions(predictions);
-    statusText.textContent = "辨識完成";
+    updateStatus("辨識完成");
   } catch (error) {
     console.error("Prediction error:", error);
-    statusText.textContent = "辨識失敗，請重試。";
-    predictionList.innerHTML = `<p class="hint-text">請重新拍照或上傳另一張照片。</p>`;
+    updateStatus("辨識失敗，請重試。");
+    updateHint("請重新拍照或上傳另一張照片。");
   }
 }
 
 function captureFrame() {
-  if (!webcamElement.videoWidth || !webcamElement.videoHeight) {
+  if (!elements.webcam.videoWidth || !elements.webcam.videoHeight) {
     return null;
   }
 
-  canvas.width = webcamElement.videoWidth;
-  canvas.height = webcamElement.videoHeight;
-  const ctx = canvas.getContext("2d");
-  ctx.drawImage(webcamElement, 0, 0, canvas.width, canvas.height);
-  return canvas;
+  elements.canvas.width = elements.webcam.videoWidth;
+  elements.canvas.height = elements.webcam.videoHeight;
+  const ctx = elements.canvas.getContext("2d");
+  ctx.drawImage(elements.webcam, 0, 0, elements.canvas.width, elements.canvas.height);
+  return elements.canvas;
 }
 
-captureButton.addEventListener("click", async () => {
+elements.captureButton.addEventListener("click", async () => {
   const source = captureFrame();
   if (!source) {
-    statusText.textContent = "無法取得相機畫面，請改用上傳照片。";
+    updateStatus("無法取得相機畫面，請改用上傳照片。");
     return;
   }
   await classifyImage(source);
 });
 
-imageInput.addEventListener("change", async (event) => {
+elements.imageInput.addEventListener("change", async (event) => {
   const file = event.target.files && event.target.files[0];
   if (!file) return;
 
   const image = new Image();
   image.onload = async () => {
-    canvas.width = image.width;
-    canvas.height = image.height;
-    const ctx = canvas.getContext("2d");
+    elements.canvas.width = image.width;
+    elements.canvas.height = image.height;
+    const ctx = elements.canvas.getContext("2d");
     ctx.drawImage(image, 0, 0);
-    await classifyImage(canvas);
+    await classifyImage(elements.canvas);
   };
   image.onerror = () => {
-    statusText.textContent = "無法讀取照片，請選擇其他圖片。";
+    updateStatus("無法讀取照片，請選擇其他圖片。");
   };
   image.src = URL.createObjectURL(file);
 });
 
-window.addEventListener("load", async () => {
+window.addEventListener("DOMContentLoaded", async () => {
+  setControlsEnabled(false);
   await loadModel();
   await initCamera();
 });

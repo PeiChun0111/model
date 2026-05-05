@@ -4,31 +4,15 @@
 
 ## 如何使用
 
-1. 在專案根目錄啟動本機伺服器，避免瀏覽器直接開啟檔案時產生模型載入限制。
+1. 這是純前端靜態網站，使用 HTML/CSS/JavaScript 與 Teachable Machine 前端模型載入。
 
-```bash
-cd /workspaces/model
-python3 -m http.server 8000
-```
+2. 可部署到 GitHub Pages 或任何靜態網站主機。
 
-如果你想更簡單，可以直接執行：
+3. 若在本機測試，請使用靜態伺服器或 Visual Studio Code 的 Live Server 等工具開啟，避免直接以 `file://` 打開。
 
-```bash
-./start.sh
-```
+4. 允許相機存取，或使用「上傳照片」功能進行辨識。
 
-2. 開啟瀏覽器並造訪：
-
-```text
-http://localhost:8000
-```
-
-3. 允許相機存取，或使用「上傳照片」功能進行辨識。
-
-> 注意：不要直接以 `file://` 開啟 `index.html`，那樣會導致模型檔案載入失敗。
-
-如果要部署到 GitHub Pages，請確認頁面網址是 `https://<你的帳號>.github.io/model/`，且模型檔案可以正常載入。
-
+> 註：程式會自動從當前頁面路徑載入 `models/model.json` 與 `models/metadata.json`，確保模型資料夾與網頁同層。
 ## 專案內容
 
 - `index.html`：主頁面。
