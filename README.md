@@ -27,6 +27,8 @@ http://localhost:8000
 
 > 注意：不要直接以 `file://` 開啟 `index.html`，那樣會導致模型檔案載入失敗。
 
+如果要部署到 GitHub Pages，請確認頁面網址是 `https://<你的帳號>.github.io/model/`，且模型檔案可以正常載入。
+
 ## 專案內容
 
 - `index.html`：主頁面。

@@ -1,5 +1,6 @@
-const modelURL = "models/model.json";
-const metadataURL = "models/metadata.json";
+const baseURL = new URL(".", window.location.href).href;
+const modelURL = new URL("models/model.json", baseURL).href;
+const metadataURL = new URL("models/metadata.json", baseURL).href;
 const webcamElement = document.getElementById("webcam");
 const captureButton = document.getElementById("captureButton");
 const imageInput = document.getElementById("imageInput");
@@ -62,8 +63,9 @@ async function loadModel() {
     console.error("Model load error:", error);
     showStatus(
       "模型載入失敗",
-      "請檢查 models 資料夾與本機伺服器是否啟動。"
+      `無法載入模型：${error.message}。請開啟瀏覽器開發者工具查看詳細錯誤。`
     );
+    predictionList.innerHTML = `<p class="hint-text">載入模型失敗，請確認模型檔案可存取或檢查瀏覽器 Console。</p>`;
   }
 }
 
