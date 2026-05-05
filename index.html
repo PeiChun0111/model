@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>垃圾分類辨識</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <main class="page-shell">
+    <header class="app-header">
+      <div>
+        <p class="eyebrow">手機垃圾分類</p>
+        <h1>拍照辨識垃圾類別</h1>
+      </div>
+      <p class="small-note">使用現有模型，直接在手機瀏覽器上拍照辨識。</p>
+    </header>
+
+    <section class="camera-card">
+      <div class="video-frame">
+        <video id="webcam" autoplay muted playsinline></video>
+        <div id="video-overlay" class="video-overlay">
+          <p>正在等待相機...</p>
+        </div>
+      </div>
+      <div class="button-row">
+        <button id="captureButton" class="primary-button" type="button">拍照辨識</button>
+        <label class="secondary-button" for="imageInput">上傳照片</label>
+        <input id="imageInput" type="file" accept="image/*" hidden />
+      </div>
+      <canvas id="captureCanvas" hidden></canvas>
+    </section>
+
+    <section class="result-card">
+      <div class="result-header">
+        <h2>辨識結果</h2>
+        <span id="statusText" class="status-text">尚未辨識</span>
+      </div>
+      <div id="predictionList" class="prediction-list">
+        <p class="hint-text">請先按下「拍照辨識」或上傳照片。</p>
+      </div>
+      <div class="tip-box">
+        <strong>提醒：</strong>相機畫面需允許存取，建議在 HTTPS 或本機伺服器上執行。
+      </div>
+    </section>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@0.8.4/dist/teachablemachine-image.min.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
